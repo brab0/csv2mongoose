@@ -1,13 +1,23 @@
 const lineReader = require('line-reader');
 
-module.exports.load = function(options){
+var reader;
+
+module.exports.load = function(options, cb){
     lineReader.open(options.file, {
         encoding : options.encoding
-    }, function(err, reader) {
+    }, function(err, lr) {
         if (err) throw err;
         
-        return new Reader(Object.assign(options, {reader : reader}));
-    });    
+        reader = new Reader(Object.assign(options, {reader : lr}));
+    });
+
+    return { read: fakeReader }
+}
+
+function fakeReader(cb){    
+    setTimeout(() => {
+        reader ? reader.read(cb) : fakeReader(cb)
+    }, 50);
 }
 
 class Reader{
@@ -18,12 +28,13 @@ class Reader{
         this.reader = options.reader;
         this.separator = options.separator;
         this.index = 0;
-        this.indexesMap = this.getIndexesMap(options.models, options.mapLinker);
+        this.indexesMap = this.getIndexesMap(options.mapLinker);
         options.onStart();
     }
 
-    getIndexesMap(models, mapLinker){
+    getIndexesMap(mapLinker){
         let map = {};
+        const models = require('mongoose').models;
         
         for(let model in models){            
             const schema = models[model].schema.obj;
@@ -31,15 +42,15 @@ class Reader{
 
             map[modelKey] = {};
 
-            for(let prop in schema){    
-              for(let attr in schema[prop]){
-                if(attr == mapLinker){
-                  map[modelKey][prop] = schema[prop][attr];
+            for(let prop in schema){                
+                for(let attr in schema[prop]){
+                    if(attr == mapLinker){                        
+                        map[modelKey][prop] = schema[prop][attr];
+                    }
                 }
-              }
             }  
         }
-      
+
         return map;
     }    
 
@@ -54,7 +65,7 @@ class Reader{
                 if(line){                    
                     let cols = line.split(this.separator);
                     let entities = {};
-
+                    
                     if(this.header){
                         for(let entity in this.indexesMap){
                             entities[entity] = this.parse(cols, this.indexesMap[entity]);

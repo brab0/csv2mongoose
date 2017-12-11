@@ -83,7 +83,6 @@ class Reader{
 
             this.reader.close(function(err) {
                 if (err) throw err;
-                process.exit(0);
             });
         }   
     }

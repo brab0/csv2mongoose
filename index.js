@@ -3,6 +3,8 @@ const lineReader = require('line-reader');
 var reader;
 
 module.exports.load = function(options, cb){
+    reader = {};
+    
     lineReader.open(options.file, {
         encoding : options.encoding
     }, function(err, lr) {

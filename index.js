@@ -63,7 +63,7 @@ class Reader{
             })
             .then(line => {
                 if(line){                    
-                    let cols = line.split(this.separator);
+                    let cols = line.toString().split(this.separator);
                     let entities = {};
                     
                     if(this.header){

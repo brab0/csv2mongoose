@@ -1,8 +1,7 @@
-const lineReader = require('line-reader');
-
 var reader;
 
 module.exports.load = function(options, cb){
+    const lineReader = require('line-reader');
     reader = {};
     
     lineReader.open(options.file, {

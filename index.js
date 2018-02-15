@@ -71,8 +71,7 @@ class Reader{
                 }
             }  
         }
-
-        console.log(map)
+        
         return map;
     }
 

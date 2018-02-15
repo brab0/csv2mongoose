@@ -61,7 +61,13 @@ class Reader{
                                 this.columns = columns;
                             }
 
-                            var colIndex = this.columns.map(col => col.toLowerCase()).indexOf(modelKey.toLowerCase() + "." + prop);
+                            var colIndex = this.columns.map(col => {
+                                if(this.mapLinker.model && this.mapLinker.model.remove){                                    
+                                    col = col.split(this.mapLinker.model && this.mapLinker.model.separator ? this.mapLinker.model.separator : "").join("");
+                                }
+                                
+                                return col.toLowerCase();
+                            }).indexOf(modelKey.toLowerCase() + this.mapLinker.model && this.mapLinker.model.separator ? this.mapLinker.model.separator : "" + prop);
 
                             if(colIndex > -1){                                
                                 map[modelKey][prop] = colIndex;

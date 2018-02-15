@@ -50,8 +50,6 @@ class Reader{
                         if(this.mapLinker.type == "index"){
                             map[modelKey][prop] = schema[prop][attr];
                         } else if(this.mapLinker.type == "name"){
-                            let columns = [];
-
                             if(!this.columns){
                                 const separator = this.separator;
                                 let columns = [];
@@ -59,16 +57,20 @@ class Reader{
                                 this.reader.nextLine((err, line) => columns = line.split(separator));
                                 
                                 this.columns = columns;
-                            }
+                            }                            
 
-                            var colIndex = this.columns.map(col => {
-                                if(this.mapLinker.model && this.mapLinker.model.remove){                                    
-                                    col = col.split(this.mapLinker.model && this.mapLinker.model.separator ? this.mapLinker.model.separator : "").join("");
+                            let colIndex = this.columns.map(col => {
+                                if(this.mapLinker.model && this.mapLinker.model.remove){
+                                    if(this.mapLinker.model && this.mapLinker.model.remove){
+                                        let cols = col.split(this.mapLinker.model.separator);
+                                        cols[0] = cols[0].replace(this.mapLinker.model.remove, "");                                        
+                                        col = cols.join(this.mapLinker.model.separator);
+                                    }                                    
                                 }
                                 
                                 return col.toLowerCase();
-                            }).indexOf(modelKey.toLowerCase() + this.mapLinker.model && this.mapLinker.model.separator ? this.mapLinker.model.separator : "" + prop);
-
+                            }).indexOf(modelKey.toLowerCase() + this.mapLinker.model.separator + prop);
+                            
                             if(colIndex > -1){                                
                                 map[modelKey][prop] = colIndex;
                             }

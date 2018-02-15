@@ -29,11 +29,12 @@ class Reader{
         this.reader = options.reader;
         this.separator = options.separator;
         this.index = 0;
-        this.indexesMap = this.getIndexesMap(options.mapLinker);
+        this.mapLinker = options.mapLinker;
+        this.indexesMap = this.getIndexesByMapper();
         options.onStart();
     }
 
-    getIndexesMap(mapLinker){
+    getIndexesByMapper(){
         let map = {};
         const models = require('mongoose').models;
         
@@ -43,17 +44,37 @@ class Reader{
 
             map[modelKey] = {};
 
-            for(let prop in schema){                
+            for(let prop in schema){
                 for(let attr in schema[prop]){
-                    if(attr == mapLinker){                        
-                        map[modelKey][prop] = schema[prop][attr];
+                    if(attr == this.mapLinker.attr){
+                        if(this.mapLinker.type == "index"){
+                            map[modelKey][prop] = schema[prop][attr];
+                        } else if(this.mapLinker.type == "name"){
+                            let columns = [];
+
+                            if(!this.columns){
+                                const separator = this.separator;
+                                let columns = [];
+
+                                this.reader.nextLine((err, line) => columns = line.split(separator));
+                                
+                                this.columns = columns;
+                            }
+
+                            var colIndex = this.columns.map(col => col.toLowerCase()).indexOf(modelKey.toLowerCase() + "." + prop);
+
+                            if(colIndex > -1){                                
+                                map[modelKey][prop] = colIndex;
+                            }
+                        }                        
                     }
                 }
             }  
         }
 
+        console.log(map)
         return map;
-    }    
+    }
 
     read(cb){
         if (this.reader.hasNextLine()) {            
@@ -67,7 +88,8 @@ class Reader{
                     let cols = line.toString().split(this.separator);
                     let entities = {};
                     
-                    if(this.header){
+                    // o header do this.mapLinker.type === "name" é obrigatório e lido em getIndexesByMapper()
+                    if(this.header || this.mapLinker.type === "name"){
                         for(let entity in this.indexesMap){
                             entities[entity] = this.parse(cols, this.indexesMap[entity]);
                         }                    
